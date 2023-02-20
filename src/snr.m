@@ -3,9 +3,28 @@ time_init = posixtime(datetime("2017-07-28 03:12:59"));
 
 % Read table, get frequency and pressure
 T = readtable("pc_20170728_031259_ch05_sel02_setteac101_hawaii_ROCCA.xlsx");
-frequency = T.("PeakFrequency_Hz_");
+frequency = T.("PeakFrequency_Hz_") / 1000;
 pressure = T.("WindowRMS");
 time_ms = (T.("Time_ms_") - time_init*1000) / 1000;
+
+reducedFreq = decimate(samples, 10);
+reducedFS = fs / 10;
+window = hamming(512);
+nfft = 512;
+nooverlap = 128;
+
+spectrogram(reducedFreq, window, nooverlap, nfft, reducedFS, 'yaxis');
+%specVal = spectrogram(reducedFreq, window, nooverlap, nfft, reducedFS, 'yaxis');
+%specVal = abs(specVal);
+
+hold on
+x = time_ms;
+y = frequency;
+plot(x, y, 'k');
+hold off
+
+%{
+% STUFF ENDS HERE
 
 amplitude = [];
 
@@ -21,7 +40,7 @@ for i=1:length(uniqueFreq)
 end
 
 % plot amplitude vs frequency
-plot(uniqueFreq, amplitude);
+% plot(uniqueFreq, amplitude);
 
 begin = -1;
 finish = -1;
@@ -59,3 +78,4 @@ disp(dB);
 % Point out the outlying peak (that's the whistle)
 % Take the amplitude difference of signal and noise
 % Do 20*log(signal amplitude / noise amplitude)
+%}
