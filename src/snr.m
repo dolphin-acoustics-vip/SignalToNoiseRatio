@@ -1,7 +1,12 @@
+[samples, fs] = audioread("test_files/20170728_031259_ch05_sel02.wav");
+time_init = posixtime(datetime("2017-07-28 03:12:59"));
+
 % Read table, get frequency and pressure
 T = readtable("pc_20170728_031259_ch05_sel02_setteac101_hawaii_ROCCA.xlsx");
 frequency = T.("PeakFrequency_Hz_");
 pressure = T.("WindowRMS");
+time_ms = (T.("Time_ms_") - time_init*1000) / 1000;
+
 amplitude = [];
 
 % Bunch rows with same frequency together
