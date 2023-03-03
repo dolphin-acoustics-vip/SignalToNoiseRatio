@@ -11,11 +11,11 @@ function plotSpectrogram(file)
     % Arguments for the spectrogram function.
     window = hamming(512);
     nfft = 512;
-    nooverlap = 128;
+    numOverlap = 128;
 
     % This usually opens in its own window, but how to have this go onto
     % the GUI?
-    spectrogram(reducedFreq, window, nooverlap, nfft, reducedFS, 'yaxis')
+    spectrogram(reducedFreq, window, numOverlap, nfft, reducedFS, 'yaxis')
 end
 
 % make sure the sample rate is double the highest frequency
