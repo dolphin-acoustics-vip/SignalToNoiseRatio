@@ -28,11 +28,7 @@ function snr = computeSNR(whistle, nfft, overlap, fs, numFreqBins, numTimeBins, 
     noiseTime = setdiff(minSpecBinTime:maxSpecBinTime, 1:numTimeBins);
     noiseTimeSamples = randperm(noiseTime, maxSpecBinTime - minSpecBinTime + 1);
 
-    for t = 1 : length(noiseTimeSamples)
-        verticalEnergyLine = specVal(numFreqBins - maxSpecBinFreq : numFreqBins - minSpecBinFreq, noiseTimeSamples(t));
-        runningSum = runningSum + sumsqr(verticalEnergyLine);
-    end
-
-    eNoise = runningSum / (maxSpecBinTime - minSpecBinTime + 1);
+    verticalEnergyLines = specVal(numFreqBins - maxSpecBinFreq : numFreqBins - minSpecBinFreq, noiseTimeSamples);
+    eNoise = median(verticalEnergyLines);
     snr = 10 * log10(eSignal / eNoise);
 end
