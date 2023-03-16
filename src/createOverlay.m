@@ -20,14 +20,10 @@ function createOverlay(csvFile, wavFile)
 
     if matches
         time = extractBetween(wavName, 1, 15);
-        disp(time)
-
         t = datetime(time,'InputFormat','yyyyMMdd_HHmmss');
-        %datetime("2017-07-28 03:12:59")
-
         time_init = posixtime(t);
+
         T = readtable(csvFile);
-        
         frequency = T.("PeakFrequency_Hz_") / 1000;
         time_ms = (T.("Time_ms_") - time_init*1000) / 1000;
         

@@ -5,16 +5,16 @@
 % All matching file names are then paired in a csv file called
 % Match_Results.csv
 
-function findMatches(wavDirectory, csvDirectory, resultDirectory)
+function findMatches(wavDirectory, csvDirectory, matchesDirectory)
         if (nargin == 0)
             wavDirectory = uigetdir("WAV Folder");
             csvDirectory = uigetdir("CSV Folder");
+            matchesDirectory = uigetdir("Where to store match_results?");
         end
 
         wavFiles = dir(fullfile(wavDirectory, '*.wav'));
         csvFiles = dir(fullfile(csvDirectory, '*.csv'));
 
-        matchesDirectory = uigetdir("Where to store match_results?");
         file_name = 'Match_Results.csv';
         match_file = fullfile(matchesDirectory, file_name);
         writelines("CSV,WAV", match_file)
@@ -35,29 +35,6 @@ function findMatches(wavDirectory, csvDirectory, resultDirectory)
     
                 matches = contains(csvN, wavN);
                 if (matches == 1)
-                    wF = fullfile(wavDirectory, wavFiles(i).name);
-                    cF = fullfile(csvDirectory, csvFiles(j).name);
-                    % Need a way for these to not overwrite each other, and
-                    % to just pop up and click through.
-                    
-                    if nargin >= 1
-                        %figure(figureNo)
-                        %figureNo = figureNo + 1;
-                        f = figure('Name', wavFiles(i).name);
-                        createOverlay(cF, wF);
-
-                        calculateFigureSNR = questdlg('Calculate SNR?', 'SNR', 'Yes', 'No');
-                        % Need to be checking for button press.
-                        %pause(3)
-                        switch calculateFigureSNR
-                            case 'Yes'
-                                %Calc SNR
-                                close(f)
-                            case 'No'
-                                close(f)
-                        end
-                    end
-                 
                     firstCol = strcat(csvN, ",");
                     secCol = wavN;
                     writelines(strcat(firstCol, secCol), match_file, WriteMode="append")
