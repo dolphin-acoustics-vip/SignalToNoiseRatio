@@ -1,4 +1,4 @@
-function [snr, signalBox] = computeSNR(contour, wavFile)
+function [snr, min_time, max_time, min_frequency, max_frequency] = computeSNR(contour, wavFile)
     [y, fs] = audioread(wavFile);
     [spec, ~, ~] = plotSpectrogram(wavFile);
     specVal = abs(spec).^2;
