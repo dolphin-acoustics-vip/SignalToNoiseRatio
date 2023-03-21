@@ -1,4 +1,4 @@
-function [snr, min_time, max_time, min_frequency, max_frequency] = computeSNR(contour, wavFile)
+function [snr, signalBox] = computeSNR(contour, wavFile)
     [y, fs] = audioread(wavFile);
     [spec, ~, ~] = plotSpectrogram(wavFile);
     specVal = abs(spec).^2;
@@ -27,8 +27,8 @@ function [snr, min_time, max_time, min_frequency, max_frequency] = computeSNR(co
     
     minSpecBinFreq = floor(min_frequency * nfft * 10 / fs + 1);
     minSpecBinTime = floor(min_time * fs / advance / 10 + 1);
-    maxSpecBinFreq = ceil(max_frequency * nfft * 10 / fs + 1);
-    maxSpecBinTime = ceil(max_time * fs / advance / 10 + 1);
+    maxSpecBinFreq = ceil(max_frequency * nfft * 10 / fs);
+    maxSpecBinTime = ceil(max_time * fs / advance / 10);
     numTimeBins = floor((wavTime * fs / advance + 1)/10);
 
     runningSum = 0;
@@ -37,7 +37,6 @@ function [snr, min_time, max_time, min_frequency, max_frequency] = computeSNR(co
         runningSum = runningSum + sum(verticalEnergyLine);
     end
     
-    %runningSum = 0;
     eSignal = runningSum / (maxSpecBinTime - minSpecBinTime + 1);
     noiseTime = setdiff(1:numTimeBins, minSpecBinTime:maxSpecBinTime);
     
