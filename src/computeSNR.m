@@ -22,6 +22,9 @@ function [snr, signalBox] = computeSNR(contour, wavFile)
     % Create signal box for organization
     min_time = min(time_ms);
     max_time = max(time_ms);
+
+    disp(max(time_ms) - min(time_ms));
+
     min_frequency = min(frequency);
     max_frequency = max(frequency);
     
@@ -29,7 +32,7 @@ function [snr, signalBox] = computeSNR(contour, wavFile)
     minSpecBinTime = floor(min_time * fs / advance / 10 + 1);
     maxSpecBinFreq = ceil(max_frequency * nfft * 10 / fs);
     maxSpecBinTime = ceil(max_time * fs / advance / 10);
-    numTimeBins = floor((wavTime * fs / advance + 1)/10);
+    numTimeBins = floor((wavTime * fs / advance)/10);
 
     runningSum = 0;
     for t = minSpecBinTime : maxSpecBinTime
@@ -39,6 +42,8 @@ function [snr, signalBox] = computeSNR(contour, wavFile)
     
     eSignal = runningSum / (maxSpecBinTime - minSpecBinTime + 1);
     noiseTime = setdiff(1:numTimeBins, minSpecBinTime:maxSpecBinTime);
+
+    display(numTimeBins);
     
     verticalEnergyLines = specVal(minSpecBinFreq:maxSpecBinFreq, noiseTime); %(2D array of times and frequencies)
     verticalEnergyLines = sum(verticalEnergyLines, 1); % Length of this array = noiseTimeSamples, if not, try summing across 2nd dimension (to sum frequency).
