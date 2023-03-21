@@ -7,6 +7,10 @@ function SNR_CLI(wavDirectory, csvDirectory, matchesDirectory)
 
         % Creates match_results.csv
         findMatches(wavDirectory, csvDirectory, matchesDirectory)
+        % Make snr results file.
+        file_name = 'SNR_Results.csv';
+        snr_file = fullfile(matchesDirectory, file_name);
+        writelines("Clip,SNR", snr_file, "WriteMode","overwrite");
 
         file_name = 'Match_Results.csv';
         match_file = fullfile(matchesDirectory, file_name);
@@ -25,7 +29,8 @@ function SNR_CLI(wavDirectory, csvDirectory, matchesDirectory)
     
                 disp(strcat(csvName, strcat("   -   ", wavName) ))
     
-                computeSNR(csvPath, wavPath)
+                [snrVal, ~, ~, ~, ~] = computeSNR(csvPath, wavPath);
+                writelines(strcat(wavName, strcat(",", string(snrVal))), snr_file, "WriteMode","append");
             end
         end
 end
