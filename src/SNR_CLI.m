@@ -27,7 +27,8 @@ function SNR_CLI(wavDirectory, csvDirectory, matchesDirectory)
                 wavPath = fullfile(wavDirectory, wavName);
                 csvPath = fullfile(csvDirectory, strcat("pc_", csvName));
     
-                disp(strcat(csvName, strcat("   -   ", wavName) ))
+                % displaying wav and csv for debugging purposes.
+                %disp(strcat(csvName, strcat("   -   ", wavName) ))
     
                 [snrVal, ~, ~, ~, ~] = computeSNR(csvPath, wavPath);
                 writelines(strcat(wavName, strcat(",", string(snrVal))), snr_file, "WriteMode","append");
