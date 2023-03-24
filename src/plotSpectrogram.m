@@ -1,12 +1,12 @@
  % This file holds the method for plotting the spectrogram onto the GUI.
 
- function [s, f, t] = plotSpectrogram(file)
-    [samples, fs] = audioread(file);
+ function [s, f, t] = plotSpectrogram(samples, fs)
+    %[samples, fs] = audioread(file);
 
     % Decimating, so that the sample rate is double the highest frequency -
     % Nyquist's Theorem.
-    reducedFreq = decimate(samples, 10);
-    reducedFS = fs / 10;
+    %reducedFreq = decimate(samples, 10);
+    %reducedFS = fs / 10;
     
     % Arguments for the spectrogram function.
     window = hamming(512);
@@ -15,7 +15,7 @@
 
     % This usually opens in its own window, but how to have this go onto
     % the GUI?
-    [s, f, t] = spectrogram(reducedFreq, window, nooverlap, nfft, reducedFS, 'yaxis');
+    [s, f, t] = spectrogram(samples, window, nooverlap, nfft, fs, 'yaxis');
 end
 
 % make sure the sample rate is double the highest frequency
