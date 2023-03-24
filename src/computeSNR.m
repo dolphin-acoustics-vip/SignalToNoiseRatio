@@ -1,8 +1,11 @@
+% Compute the Signal-to-Noise ratio given a CSV contour file and WAV audio file
 function [snr, min_time, max_time, min_frequency, max_frequency] = computeSNR(contour, wavFile)
+    % TODO: Add a default csv file for contour, wav file for audio
     if (nargin == 0)
-        wavFile = "C:\Users\Samin\Desktop\SNR\src\test_files\wav\20170728_031259_ch05_sel02.wav";
-        contour = "C:\Users\Samin\Desktop\SNR\src\test_files\csv\pc_20170728_031259_ch05_sel02_setteac101_hawaii_ROCCA.csv";
+        wavFile = "";
+        contour = "";
     end
+
     [y, fs] = audioread(wavFile);
 
     % Decimating based on current sample rate of given wav file.
@@ -16,10 +19,8 @@ function [snr, min_time, max_time, min_frequency, max_frequency] = computeSNR(co
 
     nfft = 512;
     overlap = 128;
-    %[spec, ~, ~] = plotSpectrogram(y, fs);
     spec = spectrogram(y, hamming(nfft), overlap, nfft, fs, 'yaxis');
-    % plots spectrogram to figure.
-    %spectrogram(y, hamming(nfft), overlap, nfft, fs, 'yaxis');
+    % Spectral value squared is proportional to energy
     specVal = abs(spec).^2;
 
     % Getting posix time based on file name.
@@ -29,11 +30,10 @@ function [snr, min_time, max_time, min_frequency, max_frequency] = computeSNR(co
     time_init = posixtime(t);
     wavTime = length(y)./fs;
 
+    % Read table and process time
     whistle_table = readtable(contour, "ReadVariableNames", true);
-
     time_ms = (whistle_table.("Time_ms_") - time_init*1000) / 1000;
-    disp(time_ms)
-    frequency = whistle_table.("PeakFrequency_Hz_"); % maybe divide by 1000
+    frequency = whistle_table.("PeakFrequency_Hz_");
     advance = nfft - overlap;
 
     % Create signal box for organization
@@ -42,25 +42,30 @@ function [snr, min_time, max_time, min_frequency, max_frequency] = computeSNR(co
     min_frequency = min(frequency);
     max_frequency = max(frequency);
     
-    minSpecBinFreq = floor(min_frequency * nfft / fs + 1);
-    minSpecBinTime = floor(min_time * fs / advance + 1);
-    maxSpecBinFreq = ceil(max_frequency * nfft / fs);
-    maxSpecBinTime = ceil(max_time * fs / advance);
+    % Organize time and frequency into FFT bins
+    minFreqBin = floor(min_frequency * nfft / fs + 1);
+    minTimeBin = floor(min_time * fs / advance + 1);
+    maxFreqBin = ceil(max_frequency * nfft / fs);
+    maxTimeBin = ceil(max_time * fs / advance);
     numTimeBins = (floor((wavTime * fs / advance))) - 1;
 
+    % Sum energy across whistle
     runningSum = 0;
     for t = minSpecBinTime : maxSpecBinTime
-        verticalEnergyLine = specVal(minSpecBinFreq:maxSpecBinFreq, t);
+        verticalEnergyLine = specVal(minFreqBin:maxFreqBin, t);
         runningSum = runningSum + sum(verticalEnergyLine);
     end
     
-    eSignal = runningSum / (maxSpecBinTime - minSpecBinTime + 1);
+    % Ask Dr. Gillespie about noiseTime
+    eSignal = runningSum / (maxTimeBin - minTimeBin + 1);
     %noiseTime = setdiff(1:numTimeBins, minSpecBinTime:maxSpecBinTime);
     noiseTime = 1:numTimeBins;
     
-    verticalEnergyLines = specVal(minSpecBinFreq:maxSpecBinFreq, noiseTime); %(2D array of times and frequencies)
+    % Energy in each time bucket
+    verticalEnergyLines = specVal(minFreqBin:maxFreqBin, noiseTime); %(2D array of times and frequencies)
     verticalEnergyLines = sum(verticalEnergyLines, 1); % Length of this array = noiseTimeSamples, if not, try summing across 2nd dimension (to sum frequency).
 
+    % Ask Dr. Gillespie if (eSignal + eNoise)/eNoise is any better?
     eNoise = median(verticalEnergyLines);
     snr = 10 * log10(eSignal / eNoise);
 end
