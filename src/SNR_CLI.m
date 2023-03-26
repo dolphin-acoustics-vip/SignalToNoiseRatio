@@ -1,5 +1,13 @@
+% This function is used to calculate the SNR of of all matched files
+% between two given directories containing wav and csv files.
+
+% The results of this is stored in another user-specified directory, under
+% file name 'SNR_Results.csv'
 function SNR_CLI(wavDirectory, csvDirectory, matchesDirectory)
-        if (nargin == 0)
+
+        % If no arguments/incorrect number of arguments provided, 
+        % prompt user for directories.
+        if (nargin ~= 3)
             wavDirectory = uigetdir("WAV Folder");
             csvDirectory = uigetdir("CSV Folder");
             matchesDirectory = uigetdir("Where to store match_results?");
@@ -12,6 +20,9 @@ function SNR_CLI(wavDirectory, csvDirectory, matchesDirectory)
         snr_file = fullfile(matchesDirectory, file_name);
         writelines("Clip,SNR", snr_file, "WriteMode","overwrite");
 
+        % Getting the matches between the wav and csv files, and storing
+        % them in a table, so that each row can be accessed and the SNR of
+        % each match can be calculated.
         file_name = 'Match_Results.csv';
         match_file = fullfile(matchesDirectory, file_name);
         match_table = readtable(match_file,"ReadVariableNames", true);
@@ -20,18 +31,25 @@ function SNR_CLI(wavDirectory, csvDirectory, matchesDirectory)
         for i = 1:height(match_table)
             row = match_table(i,:);
             
+            % If there is a match for the wav file, calculate SNR.
             if (not (contains(row.("CSV"), "No matches")))
+                
+                % Get file name, need to concatenate file extensions to the
+                % names from the table row.
                 wavName = strcat(row.("WAV"), ".wav");
                 csvName = strcat(row.("CSV"), ".csv");
-                % Get file paths.
+                % Get file paths of the matched wav and csv file.
                 wavPath = fullfile(wavDirectory, wavName);
                 csvPath = fullfile(csvDirectory, strcat("pc_", csvName));
     
                 % displaying wav and csv for debugging purposes.
                 %disp(strcat(csvName, strcat("   -   ", wavName) ))
     
+                % Getting the SNR by using computeSNR.
                 [snrVal, ~, ~, ~, ~] = computeSNR(csvPath, wavPath);
-                writelines(strcat(wavName, strcat(",", string(snrVal))), snr_file, "WriteMode","append");
+                % Write SNR, and the wav name, to the SNR results csv file.
+                cName = strcat(csvName, ",");
+                writelines(strcat(cName, strcat(wavName, strcat(",", string(snrVal)))), snr_file, "WriteMode","append");
             end
         end
 end

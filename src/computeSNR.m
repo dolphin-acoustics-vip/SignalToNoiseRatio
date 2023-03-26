@@ -1,25 +1,14 @@
 % Compute the Signal-to-Noise ratio given a CSV contour file and WAV audio file
 function [snr, min_time, max_time, min_frequency, max_frequency] = computeSNR(contour, wavFile)
-    % TODO: Add a default csv file for contour, wav file for audio
-    if (nargin == 0)
-        wavFile = "";
-        contour = "";
+    
+    % Quit the program if the contour and wav file is not provided.
+    if (nargin == 0 || nargin ~= 2)
+        errordlg('No wav/contour provided');
+        quit
     end
 
-    [y, fs] = audioread(wavFile);
-
-    % Decimating based on current sample rate of given wav file.
-    d = round(fs / 50000);
-    d = max(d, 1);
-    if d > 1
-        y = decimate(y, d);
-        fs = fs / d;
-        % Write sample rates to the csv file
-    end
-
-    nfft = 512;
-    overlap = 128;
-    spec = spectrogram(y, hamming(nfft), overlap, nfft, fs, 'yaxis');
+    % Get spectral values from using getSpectrogramOfWav function.
+    [spec, ~, ~] = getSpectrogramOfWav(wavFile);
     % Spectral value squared is proportional to energy
     specVal = abs(spec).^2;
 
