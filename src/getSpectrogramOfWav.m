@@ -5,7 +5,7 @@
 % This function will decimate the wav file, based on it's sample rate, and
 % return values from the resulting spectrogram.
 
-function [s, f, t] = getSpectrogramOfWav(wavFile)
+function [s, f, t, fs, nfft, overlap, samples] = getSpectrogramOfWav(wavFile)
     % Reading the wav file. 
     [samples, fs] = audioread(wavFile);
 

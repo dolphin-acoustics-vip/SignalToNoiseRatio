@@ -18,7 +18,7 @@ function SNR_CLI(wavDirectory, csvDirectory, matchesDirectory)
         % Make snr results file.
         file_name = 'SNR_Results.csv';
         snr_file = fullfile(matchesDirectory, file_name);
-        writelines("Clip,SNR", snr_file, "WriteMode","overwrite");
+        writelines("Contour,Clip,SNR", snr_file, "WriteMode","overwrite");
 
         % Getting the matches between the wav and csv files, and storing
         % them in a table, so that each row can be accessed and the SNR of
@@ -48,8 +48,9 @@ function SNR_CLI(wavDirectory, csvDirectory, matchesDirectory)
                 % Getting the SNR by using computeSNR.
                 [snrVal, ~, ~, ~, ~] = computeSNR(csvPath, wavPath);
                 % Write SNR, and the wav name, to the SNR results csv file.
-                cName = strcat(csvName, ",");
-                writelines(strcat(cName, strcat(wavName, strcat(",", string(snrVal)))), snr_file, "WriteMode","append");
+                cName = strcat(strcat("pc_", csvName), ",");
+                allNames = strcat(strcat(cName, wavName), ",");
+                writelines(strcat(allNames, string(snrVal)), snr_file, "WriteMode","append");
             end
         end
 end

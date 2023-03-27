@@ -8,7 +8,7 @@ function [snr, min_time, max_time, min_frequency, max_frequency] = computeSNR(co
     end
 
     % Get spectral values from using getSpectrogramOfWav function.
-    [spec, ~, ~] = getSpectrogramOfWav(wavFile);
+    [spec, ~, ~, fs, nfft, overlap, samples] = getSpectrogramOfWav(wavFile);
     % Spectral value squared is proportional to energy
     specVal = abs(spec).^2;
 
@@ -17,7 +17,7 @@ function [snr, min_time, max_time, min_frequency, max_frequency] = computeSNR(co
     time = extractBetween(wavName, 1, 15);
     t = datetime(time,'InputFormat','yyyyMMdd_HHmmss');
     time_init = posixtime(t);
-    wavTime = length(y)./fs;
+    wavTime = length(samples)./fs;
 
     % Read table and process time
     whistle_table = readtable(contour, "ReadVariableNames", true);
@@ -40,7 +40,7 @@ function [snr, min_time, max_time, min_frequency, max_frequency] = computeSNR(co
 
     % Sum energy across whistle
     runningSum = 0;
-    for t = minSpecBinTime : maxSpecBinTime
+    for t = minTimeBin : maxTimeBin
         verticalEnergyLine = specVal(minFreqBin:maxFreqBin, t);
         runningSum = runningSum + sum(verticalEnergyLine);
     end
