@@ -1,14 +1,25 @@
 % Compute the Signal-to-Noise ratio given a CSV contour file and WAV audio file
-function [snr, min_time, max_time, min_frequency, max_frequency] = computeSNR(contour, wavFile)
-    
-    % Quit the program if the contour and wav file is not provided.
-    if (nargin == 0 || nargin ~= 2)
-        errordlg('No wav/contour provided');
-        quit
+function [snrHorizontal, snrVertical, min_time, max_time, min_frequency, max_frequency] = computeSNR(contour, wavFile)
+    % TODO: Add a default csv file for contour, wav file for audio
+    if (nargin == 0)
+        wavFile = "";
+        contour = "";
     end
 
-    % Get spectral values from using getSpectrogramOfWav function.
-    [spec, ~, ~, fs, nfft, overlap, samples] = getSpectrogramOfWav(wavFile);
+    [y, fs] = audioread(wavFile);
+
+    % Decimating based on current sample rate of given wav file.
+    d = round(fs / 50000);
+    d = max(d, 1);
+    if d > 1
+        y = decimate(y, d);
+        fs = fs / d;
+        % Write sample rates to the csv file
+    end
+
+    nfft = 512;
+    overlap = 128;
+    spec = spectrogram(y, hamming(nfft), overlap, nfft, fs, 'yaxis');
     % Spectral value squared is proportional to energy
     specVal = abs(spec).^2;
 
@@ -17,7 +28,7 @@ function [snr, min_time, max_time, min_frequency, max_frequency] = computeSNR(co
     time = extractBetween(wavName, 1, 15);
     t = datetime(time,'InputFormat','yyyyMMdd_HHmmss');
     time_init = posixtime(t);
-    wavTime = length(samples)./fs;
+    wavTime = length(y)./fs;
 
     % Read table and process time
     whistle_table = readtable(contour, "ReadVariableNames", true);
@@ -56,5 +67,21 @@ function [snr, min_time, max_time, min_frequency, max_frequency] = computeSNR(co
 
     % Ask Dr. Gillespie if (eSignal + eNoise)/eNoise is any better?
     eNoise = median(verticalEnergyLines);
-    snr = 10 * log10(eSignal / eNoise);
+    snrVertical = 10 * log10(eSignal / eNoise);
+
+    runningSum = 0;
+    for f = minFreqBin : maxFreqBin
+        horizontalEnergyLine = specVal(f, minTimeBin:maxTimeBin);
+        runningSum = runningSum + sum(horizontalEnergyLine);
+    end
+
+    eSignal = runningSum / (maxFreqBin - minFreqBin + 1);
+    %noiseFreq = setdiff(1:nfft, minFreqBin:maxFreqBin);
+    noiseFreq = 1:nfft/2;
+
+    horizontalEnergyLines = specVal(noiseFreq, minTimeBin:maxTimeBin);
+    horizontalEnergyLines = sum(horizontalEnergyLines, 2);
+
+    eNoise = median(horizontalEnergyLines);
+    snrHorizontal = 10 * log10(eSignal / eNoise);
 end
