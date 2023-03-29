@@ -6,21 +6,6 @@ function [snrHorizontal, snrVertical, min_time, max_time, min_frequency, max_fre
         contour = "";
     end
 
-%     [y, fs] = audioread(wavFile);
-% 
-%     % Decimating based on current sample rate of given wav file.
-%     d = round(fs / 50000);
-%     d = max(d, 1);
-%     if d > 1
-%         y = decimate(y, d);
-%         fs = fs / d;
-%         % Write sample rates to the csv file
-%     end
-% 
-%     nfft = 512;
-%     overlap = 128;
-%     spec = spectrogram(y, hamming(nfft), overlap, nfft, fs, 'yaxis');
-
     [specVal, ~, ~, fs, nfft, overlap, y] = getSpectrogramOfWav(wavFile);
 
     % Spectral value squared is proportional to energy
@@ -59,10 +44,8 @@ function [snrHorizontal, snrVertical, min_time, max_time, min_frequency, max_fre
         runningSum = runningSum + sum(verticalEnergyLine);
     end
     
-    % Ask Dr. Gillespie about noiseTime
     eSignal = runningSum / (maxTimeBin - minTimeBin + 1);
-    %noiseTime = setdiff(1:numTimeBins, minTimeBin:maxTimeBin);
-    noiseTime = 1:numTimeBins;
+    noiseTime = setdiff(1:numTimeBins, minTimeBin:maxTimeBin);
     
     % Energy in each time bucket
     verticalEnergyLines = specVal(minFreqBin:maxFreqBin, noiseTime); %(2D array of times and frequencies)
@@ -79,7 +62,9 @@ function [snrHorizontal, snrVertical, min_time, max_time, min_frequency, max_fre
     end
 
     eSignal = runningSum / (maxFreqBin - minFreqBin + 1);
-    %noiseFreq = setdiff(1:nfft, minFreqBin:maxFreqBin);
+    %noiseFreq = setdiff(1:nfft, minFreqBin:maxFreqBin); % This has an
+    %index error. Don't try to use this, at this point, just explain the
+    %line before and why this is noiseFreq.
     noiseFreq = 1:nfft/2;
 
     horizontalEnergyLines = specVal(noiseFreq, minTimeBin:maxTimeBin);
@@ -88,3 +73,5 @@ function [snrHorizontal, snrVertical, min_time, max_time, min_frequency, max_fre
     eNoise = median(horizontalEnergyLines);
     snrHorizontal = 10 * log10(eSignal / eNoise);
 end
+% Do we consider the mean of the signal?
+% Do we consider the max frequency of the signal?
