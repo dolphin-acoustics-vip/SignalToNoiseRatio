@@ -61,7 +61,7 @@ function [snrHorizontal, snrVertical, min_time, max_time, min_frequency, max_fre
     
     % Ask Dr. Gillespie about noiseTime
     eSignal = runningSum / (maxTimeBin - minTimeBin + 1);
-    %noiseTime = setdiff(1:numTimeBins, minSpecBinTime:maxSpecBinTime);
+    %noiseTime = setdiff(1:numTimeBins, minTimeBin:maxTimeBin);
     noiseTime = 1:numTimeBins;
     
     % Energy in each time bucket
