@@ -6,22 +6,25 @@ function [snrHorizontal, snrVertical, min_time, max_time, min_frequency, max_fre
         contour = "";
     end
 
-    [y, fs] = audioread(wavFile);
+%     [y, fs] = audioread(wavFile);
+% 
+%     % Decimating based on current sample rate of given wav file.
+%     d = round(fs / 50000);
+%     d = max(d, 1);
+%     if d > 1
+%         y = decimate(y, d);
+%         fs = fs / d;
+%         % Write sample rates to the csv file
+%     end
+% 
+%     nfft = 512;
+%     overlap = 128;
+%     spec = spectrogram(y, hamming(nfft), overlap, nfft, fs, 'yaxis');
 
-    % Decimating based on current sample rate of given wav file.
-    d = round(fs / 50000);
-    d = max(d, 1);
-    if d > 1
-        y = decimate(y, d);
-        fs = fs / d;
-        % Write sample rates to the csv file
-    end
+    [specVal, ~, ~, fs, nfft, overlap, y] = getSpectrogramOfWav(wavFile);
 
-    nfft = 512;
-    overlap = 128;
-    spec = spectrogram(y, hamming(nfft), overlap, nfft, fs, 'yaxis');
     % Spectral value squared is proportional to energy
-    specVal = abs(spec).^2;
+    specVal = abs(specVal).^2;
 
     % Getting posix time based on file name.
     [~, wavName, ~] = fileparts(wavFile);
