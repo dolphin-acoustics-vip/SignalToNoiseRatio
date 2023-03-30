@@ -10,16 +10,16 @@ function [snrHorizontal, snrVertical, min_time, max_time, min_frequency, max_fre
     [specVal, ~, ~, fs, nfft, overlap, y] = getSpectrogramOfWav(wavFile);
     
     % Spectral value squared proportional to energy
-    specVal = abs(spec).^2;
+    specVal = abs(specVal).^2;
 
-    % Getting posix time from file name.
+    % Getting POSIX time from file name.
     [~, wavName, ~] = fileparts(wavFile);
     time = extractBetween(wavName, 1, 15);
     t = datetime(time,'InputFormat','yyyyMMdd_HHmmss');
     time_init = posixtime(t);
     wavTime = length(y)./fs;
 
-    % Read table and process time
+    % Read table and convert time to POSIX standard
     whistle_table = readtable(contour, "ReadVariableNames", true);
     time_ms = (whistle_table.("Time_ms_") - time_init*1000) / 1000;
     frequency = whistle_table.("PeakFrequency_Hz_");
@@ -45,6 +45,12 @@ function [snrHorizontal, snrVertical, min_time, max_time, min_frequency, max_fre
         signalSum = signalSum + sum(fixedFrequencyLine);
     end
     
+    %%%
+    % First SNR calculation - for fixed time
+    % The lines being summed can be visualised as a vertical line on a 
+    % spectrogram, with it's frequency changing.
+    %%%
+
     % Signal energy for fixed time
     eSignalTime = signalSum / (maxTimeBin - minTimeBin + 1);
 
@@ -57,12 +63,18 @@ function [snrHorizontal, snrVertical, min_time, max_time, min_frequency, max_fre
     noiseTime = 1:numTimeBins;
     
     % Energy in all time buckets
-    fixedFrequencyLines = specVal(minFreqBin:maxFreqBin, noiseTime); %(2D array of times and frequencies)
-    fixedFrequencyLines = sum(fixedFrequencyLines, 1); % Length of this array = noiseTimeSamples, if not, try summing across 2nd dimension (to sum frequency).
+    fixedTimeLines = specVal(minFreqBin:maxFreqBin, noiseTime);
+    fixedTimeLines = sum(fixedTimeLines, 1);
 
     % Median to avoid outlier effects
-    eNoiseTime = median(fixedFrequencyLines);
+    eNoiseTime = median(fixedTimeLines);
     snrVertical = 10 * log10(eSignalTime / eNoiseTime);
+
+    %%%
+    % Second SNR calculation - for fixed frequency
+    % The lines being summed can be visualised as a horizontal line on a 
+    % spectrogram, with it's time changing.
+    %%%
 
     % Signal energy for fixed frequency
     eSignalFreq = signalSum / (maxFreqBin - minFreqBin + 1);
@@ -76,10 +88,10 @@ function [snrHorizontal, snrVertical, min_time, max_time, min_frequency, max_fre
     noiseFreq = 1:nfft/2;
 
     % Energy in all frequency buckets
-    fixedTimeLines = specVal(noiseFreq, minTimeBin:maxTimeBin);
-    fixedTimeLines = sum(fixedTimeLines, 2);
+    fixedFrequencyLines = specVal(noiseFreq, minTimeBin:maxTimeBin);
+    fixedFrequencyLines = sum(fixedFrequencyLines, 2);
 
     % Median to avoid outlier effects
-    eNoiseFreq = median(fixedTimeLines);
+    eNoiseFreq = median(fixedFrequencyLines);
     snrHorizontal = 10 * log10(eSignalFreq / eNoiseFreq);
 end
