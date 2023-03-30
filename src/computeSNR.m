@@ -6,12 +6,24 @@ function [snrHorizontal, snrVertical, min_time, max_time, min_frequency, max_fre
         contour = "";
     end
 
-    [specVal, ~, ~, fs, nfft, overlap, y] = getSpectrogramOfWav(wavFile);
+    [y, fs] = audioread(wavFile);
 
-    % Spectral value squared is proportional to energy
-    specVal = abs(specVal).^2;
+    % Decimating based on current sample rate of given wav file.
+    d = round(fs / 50000);
+    d = max(d, 1);
+    if d > 1
+        y = decimate(y, d);
+        fs = fs / d;
+        % Write sample rates to the csv file
+    end
 
-    % Getting posix time based on file name.
+    nfft = 512;
+    overlap = 128;
+    spec = spectrogram(y, hamming(nfft), overlap, nfft, fs, 'yaxis');
+    % Spectral value squared proportional to energy
+    specVal = abs(spec).^2;
+
+    % Getting posix time from file name.
     [~, wavName, ~] = fileparts(wavFile);
     time = extractBetween(wavName, 1, 15);
     t = datetime(time,'InputFormat','yyyyMMdd_HHmmss');
@@ -38,40 +50,36 @@ function [snrHorizontal, snrVertical, min_time, max_time, min_frequency, max_fre
     numTimeBins = (floor((wavTime * fs / advance))) - 1;
 
     % Sum energy across whistle
-    runningSum = 0;
+    signalSum = 0;
     for t = minTimeBin : maxTimeBin
-        verticalEnergyLine = specVal(minFreqBin:maxFreqBin, t);
-        runningSum = runningSum + sum(verticalEnergyLine);
+        fixedFrequencyLine = specVal(minFreqBin:maxFreqBin, t);
+        signalSum = signalSum + sum(fixedFrequencyLine);
     end
     
-    eSignal = runningSum / (maxTimeBin - minTimeBin + 1);
-    noiseTime = setdiff(1:numTimeBins, minTimeBin:maxTimeBin);
+    % Signal energy for fixed time
+    % TODO: Talk with Dr. Gillespie about noiseTime
+    eSignalTime = signalSum / (maxTimeBin - minTimeBin + 1);
+    %noiseTime = setdiff(1:numTimeBins, minSpecBinTime:maxSpecBinTime);
+    noiseTime = 1:numTimeBins;
     
     % Energy in each time bucket
-    verticalEnergyLines = specVal(minFreqBin:maxFreqBin, noiseTime); %(2D array of times and frequencies)
-    verticalEnergyLines = sum(verticalEnergyLines, 1); % Length of this array = noiseTimeSamples, if not, try summing across 2nd dimension (to sum frequency).
+    fixedFrequencyLines = specVal(minFreqBin:maxFreqBin, noiseTime); %(2D array of times and frequencies)
+    fixedFrequencyLines = sum(fixedFrequencyLines, 1); % Length of this array = noiseTimeSamples, if not, try summing across 2nd dimension (to sum frequency).
 
-    % Ask Dr. Gillespie if (eSignal + eNoise)/eNoise is any better?
-    eNoise = median(verticalEnergyLines);
-    snrVertical = 10 * log10(eSignal / eNoise);
+    % Median to avoid outlier effects
+    eNoiseTime = median(fixedFrequencyLines);
+    snrVertical = 10 * log10(eSignalTime / eNoiseTime);
 
-    runningSum = 0;
-    for f = minFreqBin : maxFreqBin
-        horizontalEnergyLine = specVal(f, minTimeBin:maxTimeBin);
-        runningSum = runningSum + sum(horizontalEnergyLine);
-    end
-
-    eSignal = runningSum / (maxFreqBin - minFreqBin + 1);
-    %noiseFreq = setdiff(1:nfft, minFreqBin:maxFreqBin); % This has an
-    %index error. Don't try to use this, at this point, just explain the
-    %line before and why this is noiseFreq.
+    % Signal energy for fixed frequency
+    % TODO: Talk with Dr. Gillespie about noiseFreq
+    eSignalFreq = signalSum / (maxFreqBin - minFreqBin + 1);
+    %noiseFreq = setdiff(1:nfft, minFreqBin:maxFreqBin);
     noiseFreq = 1:nfft/2;
 
-    horizontalEnergyLines = specVal(noiseFreq, minTimeBin:maxTimeBin);
-    horizontalEnergyLines = sum(horizontalEnergyLines, 2);
+    % Energy in every frequency bucket
+    fixedTimeLines = specVal(noiseFreq, minTimeBin:maxTimeBin);
+    fixedTimeLines = sum(fixedTimeLines, 2);
+    eNoiseFreq = median(fixedTimeLines);
 
-    eNoise = median(horizontalEnergyLines);
-    snrHorizontal = 10 * log10(eSignal / eNoise);
+    snrHorizontal = 10 * log10(eSignalFreq / eNoiseFreq);
 end
-% Do we consider the mean of the signal?
-% Do we consider the max frequency of the signal?
