@@ -6,20 +6,9 @@ function [snrHorizontal, snrVertical, min_time, max_time, min_frequency, max_fre
         contour = "";
     end
 
-    [y, fs] = audioread(wavFile);
-
-    % Decimating based on current sample rate of given wav file.
-    d = round(fs / 50000);
-    d = max(d, 1);
-    if d > 1
-        y = decimate(y, d);
-        fs = fs / d;
-        % Write sample rates to the csv file
-    end
-
-    nfft = 512;
-    overlap = 128;
-    spec = spectrogram(y, hamming(nfft), overlap, nfft, fs, 'yaxis');
+    % Retrieve spectrogram information
+    [specVal, ~, ~, fs, nfft, overlap, y] = getSpectrogramOfWav(wavFile);
+    
     % Spectral value squared proportional to energy
     specVal = abs(spec).^2;
 
@@ -57,12 +46,17 @@ function [snrHorizontal, snrVertical, min_time, max_time, min_frequency, max_fre
     end
     
     % Signal energy for fixed time
-    % TODO: Talk with Dr. Gillespie about noiseTime
     eSignalTime = signalSum / (maxTimeBin - minTimeBin + 1);
-    %noiseTime = setdiff(1:numTimeBins, minSpecBinTime:maxSpecBinTime);
+
+    % Line below throws index error
+    % Exclude signal time bins to get noise time bins
+    % TODO: Talk with Dr. Gillespie about noiseTime 
+    % noiseTime = setdiff(1:numTimeBins, minSpecBinTime:maxSpecBinTime);
+
+    % All time bins
     noiseTime = 1:numTimeBins;
     
-    % Energy in each time bucket
+    % Energy in all time buckets
     fixedFrequencyLines = specVal(minFreqBin:maxFreqBin, noiseTime); %(2D array of times and frequencies)
     fixedFrequencyLines = sum(fixedFrequencyLines, 1); % Length of this array = noiseTimeSamples, if not, try summing across 2nd dimension (to sum frequency).
 
@@ -71,15 +65,21 @@ function [snrHorizontal, snrVertical, min_time, max_time, min_frequency, max_fre
     snrVertical = 10 * log10(eSignalTime / eNoiseTime);
 
     % Signal energy for fixed frequency
-    % TODO: Talk with Dr. Gillespie about noiseFreq
     eSignalFreq = signalSum / (maxFreqBin - minFreqBin + 1);
-    %noiseFreq = setdiff(1:nfft, minFreqBin:maxFreqBin);
+
+    % Line below throws index error
+    % Exclude signal frequency bins to get noise frequency bins
+    % TODO: Talk with Dr. Gillespie about noiseFreq
+    % noiseFreq = setdiff(1:nfft/2, minFreqBin:maxFreqBin);
+
+    % All frequency bins
     noiseFreq = 1:nfft/2;
 
-    % Energy in every frequency bucket
+    % Energy in all frequency buckets
     fixedTimeLines = specVal(noiseFreq, minTimeBin:maxTimeBin);
     fixedTimeLines = sum(fixedTimeLines, 2);
-    eNoiseFreq = median(fixedTimeLines);
 
+    % Median to avoid outlier effects
+    eNoiseFreq = median(fixedTimeLines);
     snrHorizontal = 10 * log10(eSignalFreq / eNoiseFreq);
 end
