@@ -41,8 +41,8 @@ function [snrHorizontal, snrVertical, min_time, max_time, min_frequency, max_fre
     % Sum energy across whistle
     signalSum = 0;
     for t = minTimeBin : maxTimeBin
-        fixedFrequencyLine = specVal(minFreqBin:maxFreqBin, t);
-        signalSum = signalSum + sum(fixedFrequencyLine);
+        signalLine = specVal(minFreqBin:maxFreqBin, t);
+        signalSum = signalSum + sum(signalLine);
     end
     
     %%%
@@ -63,11 +63,11 @@ function [snrHorizontal, snrVertical, min_time, max_time, min_frequency, max_fre
     noiseTime = 1:numTimeBins;
     
     % Energy in all time buckets
-    fixedTimeLines = specVal(minFreqBin:maxFreqBin, noiseTime);
-    fixedTimeLines = sum(fixedTimeLines, 1);
+    noiseTimeLines = specVal(minFreqBin:maxFreqBin, noiseTime);
+    noiseTimeLines = sum(noiseTimeLines, 1);
 
     % Median to avoid outlier effects
-    eNoiseTime = median(fixedTimeLines);
+    eNoiseTime = median(noiseTimeLines);
     snrVertical = 10 * log10(eSignalTime / eNoiseTime);
 
     %%%
@@ -88,10 +88,10 @@ function [snrHorizontal, snrVertical, min_time, max_time, min_frequency, max_fre
     noiseFreq = 1:nfft/2;
 
     % Energy in all frequency buckets
-    fixedFrequencyLines = specVal(noiseFreq, minTimeBin:maxTimeBin);
-    fixedFrequencyLines = sum(fixedFrequencyLines, 2);
+    noiseFreqLines = specVal(noiseFreq, minTimeBin:maxTimeBin);
+    noiseFreqLines = sum(noiseFreqLines, 2);
 
     % Median to avoid outlier effects
-    eNoiseFreq = median(fixedFrequencyLines);
+    eNoiseFreq = median(noiseFreqLines);
     snrHorizontal = 10 * log10(eSignalFreq / eNoiseFreq);
 end
