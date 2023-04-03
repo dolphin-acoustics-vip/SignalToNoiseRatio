@@ -15,4 +15,4 @@ The computeSNR script/function can be used to return the SNR of a single whistle
   - When the GUI is running, you can flick through each whistle's spectrogram, and the overlay of the contour and signal box will be shown.
  
 ## Using the CLI:
-    - SNR_CLI("<wav_directory>", "<csv_directory>", "<results_directory>")
+      SNR_CLI("<wav_directory>", "<csv_directory>", "<results_directory>")
