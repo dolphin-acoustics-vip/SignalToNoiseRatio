@@ -1,9 +1,7 @@
 % Compute the Signal-to-Noise ratio given a CSV contour file and WAV audio file
-function [snrHorizontal, snrVertical, min_time, max_time, min_frequency, max_frequency] = computeSNR(contour, wavFile)
-    % TODO: Add a default csv file for contour, wav file for audio
-    if (nargin == 0)
-        wavFile = "";
-        contour = "";
+function [snrFixedFrequency, snrFixedTime, min_time, max_time, min_frequency, max_frequency] = computeSNR(contour, wavFile)
+    if (nargin ~= 2)
+        errordlg("Please provide contour and wav file of the whistle.")
     end
 
     % Retrieve spectrogram information
@@ -68,7 +66,7 @@ function [snrHorizontal, snrVertical, min_time, max_time, min_frequency, max_fre
 
     % Median to avoid outlier effects
     eNoiseTime = median(noiseTimeLines);
-    snrVertical = 10 * log10(eSignalTime / eNoiseTime);
+    snrFixedTime = 10 * log10(eSignalTime / eNoiseTime);
 
     %%%
     % Second SNR calculation - for fixed frequency
@@ -93,5 +91,5 @@ function [snrHorizontal, snrVertical, min_time, max_time, min_frequency, max_fre
 
     % Median to avoid outlier effects
     eNoiseFreq = median(noiseFreqLines);
-    snrHorizontal = 10 * log10(eSignalFreq / eNoiseFreq);
+    snrFixedFrequency = 10 * log10(eSignalFreq / eNoiseFreq);
 end
