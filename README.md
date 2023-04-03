@@ -11,9 +11,8 @@ The scripts/functions for running the program is in src.
 The computeSNR script/function can be used to return the SNR of a single whistle (given the matching whistle clip and frequency contour file).
 
 ## Using the GUI:
-    - Open the SNR_GUI.mlapp file. This will prompt for three directory paths.
-      - The first path is for the directory of whistle clips, the second is the directory of the contour csv files and the last is the directory in which the results of the SNR calculations will be stored.
+  - Open the SNR_GUI.mlapp file. This will prompt for three directory paths.
   - When the GUI is running, you can flick through each whistle's spectrogram, and the overlay of the contour and signal box will be shown.
  
 ## Using the CLI:
-  - SNR_CLI("<wav_directory>", "<csv_directory>", "<results_directory>")
+    - SNR_CLI("<wav_directory>", "<csv_directory>", "<results_directory>")
