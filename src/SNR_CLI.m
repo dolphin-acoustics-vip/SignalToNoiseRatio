@@ -25,7 +25,9 @@ function SNR_CLI(wavDirectory, csvDirectory, matchesDirectory)
         % each match can be calculated.
         file_name = 'Match_Results.csv';
         match_file = fullfile(matchesDirectory, file_name);
-        match_table = readtable(match_file,"ReadVariableNames", true);
+        match_table = readtable(match_file,"ReadVariableNames",true, "Delimiter", ",");
+        disp(match_table)
+        disp(match_table.Properties.VariableNames)
 
         % Now go through the matches and first output file names, and then use computeSNR
         for i = 1:height(match_table)
