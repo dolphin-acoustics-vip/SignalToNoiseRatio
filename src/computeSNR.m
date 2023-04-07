@@ -1,5 +1,5 @@
 % Compute the Signal-to-Noise ratio given a CSV contour file and WAV audio file
-function [snrFixedFrequency, snrFixedTime, min_time, max_time, min_frequency, max_frequency] = computeSNR(contour, wavFile)
+function [SNR_NoiseAcrossFrequencies, SNR_NoiseAcrossTime, min_time, max_time, min_frequency, max_frequency] = computeSNR(contour, wavFile)
     if (nargin ~= 2)
         errordlg("Please provide contour and wav file of the whistle.")
     end
@@ -64,9 +64,12 @@ function [snrFixedFrequency, snrFixedTime, min_time, max_time, min_frequency, ma
     noiseTimeLines = specVal(minFreqBin:maxFreqBin, noiseTime);
     noiseTimeLines = sum(noiseTimeLines, 1);
 
+    % Noise "left and right" of the contour.
+    % The noise being collected is the energy of all time bins between the
+    % min and max frequency bins of the contour.
     % Median to avoid outlier effects
     eNoiseTime = median(noiseTimeLines);
-    snrFixedTime = 10 * log10(eSignalTime / eNoiseTime);
+    SNR_NoiseAcrossTime = 10 * log10(eSignalTime / eNoiseTime);
 
     %%%
     % Second SNR calculation - for fixed frequency
@@ -89,7 +92,10 @@ function [snrFixedFrequency, snrFixedTime, min_time, max_time, min_frequency, ma
     noiseFreqLines = specVal(noiseFreq, minTimeBin:maxTimeBin);
     noiseFreqLines = sum(noiseFreqLines, 2);
 
+    % Noise "above and below" the contour.
+    % The noise being collected is the energy of all frequency bins between
+    % the max and min time bins.
     % Median to avoid outlier effects
     eNoiseFreq = median(noiseFreqLines);
-    snrFixedFrequency = 10 * log10(eSignalFreq / eNoiseFreq);
+    SNR_NoiseAcrossFrequencies = 10 * log10(eSignalFreq / eNoiseFreq);
 end
